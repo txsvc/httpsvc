@@ -6,7 +6,7 @@ IMAGE ?= httpsvc
 IMAGE_TAG ?= latest
 PLATFORMS ?= linux/amd64,linux/arm64
 
-.PHONY: all build test run clean tidy image push run-container
+.PHONY: all build test run clean tidy image push run-container test-unit test-integration test-all
 
 all: test
 
@@ -34,6 +34,17 @@ image:
 
 push:
 	podman manifest push $(IMAGE):$(IMAGE_TAG)
+
+test-unit:
+	@echo "=== Running unit tests ==="
+	bash test/unit/test_caddyfile.sh
+	bash test/unit/test_entrypoint.sh
+
+test-integration:
+	@echo "=== Running integration tests ==="
+	bash test/integration/test_container.sh
+
+test-all: test-unit test-integration
 
 run-container:
 	podman run --rm -p 8080:80 \
