@@ -41,6 +41,9 @@ main
 prompts.md
 stuff.md
 
+# ansible
+**/inventory/**
+
 # agent-fox
 .agent-fox/*
 !.agent-fox/config.toml
