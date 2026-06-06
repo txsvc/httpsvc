@@ -159,6 +159,7 @@ CADDY
         -v "${tmpdir}/sitedata:/sites:Z" \
         -e HTTPSVC_LISTEN="http://" \
         -e RELOAD_INTERVAL=5 \
+        -p 18096:80 \
         "${IMAGE}" >/dev/null 2>&1 || {
         fail "Container failed to start"
         rm -rf "${tmpdir}"
@@ -167,6 +168,18 @@ CADDY
 
     if ! wait_running "${cname}"; then
         fail "Container did not stay running"
+        cleanup_container "${cname}"
+        rm -rf "${tmpdir}"
+        return
+    fi
+
+    sleep 2
+
+    # Verify the valid site is serving traffic before adding invalid snippet
+    body_before="$(curl -s --resolve "test.local:18096:127.0.0.1" \
+        "http://test.local:18096/" 2>/dev/null)" || body_before=""
+    if ! printf '%s' "${body_before}" | grep -qF "VALID SITE"; then
+        fail "Valid site not serving traffic before invalid snippet was added"
         cleanup_container "${cname}"
         rm -rf "${tmpdir}"
         return
@@ -183,6 +196,15 @@ CADDY
         pass "Reload logged an error for invalid config"
     else
         fail "No error logged after adding invalid snippet"
+    fi
+
+    # Verify the originally-valid site is STILL serving traffic (old config kept)
+    body_after="$(curl -s --resolve "test.local:18096:127.0.0.1" \
+        "http://test.local:18096/" 2>/dev/null)" || body_after=""
+    if printf '%s' "${body_after}" | grep -qF "VALID SITE"; then
+        pass "Valid site still serving traffic after failed reload (old config kept)"
+    else
+        fail "Valid site no longer serving traffic after failed reload (got: ${body_after})"
     fi
 
     cleanup_container "${cname}"
@@ -449,6 +471,7 @@ CADDY
         -v "${tmpdir}/sites:/etc/caddy/sites:Z" \
         -e HTTPSVC_LISTEN="http://" \
         -e RELOAD_INTERVAL=5 \
+        -p 18097:80 \
         "${IMAGE}" >/dev/null 2>&1 || {
         fail "Container failed to start"
         rm -rf "${tmpdir}"
@@ -462,6 +485,8 @@ CADDY
         return
     fi
 
+    sleep 2
+
     # Temporarily stop Caddy inside the container
     caddy_pid="$(podman exec "${cname}" pidof httpsvc 2>/dev/null)" || caddy_pid=""
     if [ -n "${caddy_pid}" ]; then
@@ -469,7 +494,11 @@ CADDY
     fi
 
     # Trigger a config change
-    printf 'http://new.local { respond "NEW" 200 }' > "${tmpdir}/sites/new.local.caddy"
+    cat > "${tmpdir}/sites/new.local.caddy" <<'CADDY'
+http://new.local {
+    respond "NEW AFTER RETRY" 200
+}
+CADDY
 
     # Wait for a reload attempt while Caddy is stopped
     sleep 10
@@ -486,8 +515,27 @@ CADDY
         podman exec "${cname}" kill -CONT "${caddy_pid}" 2>/dev/null || true
     fi
 
-    # Wait for next cycle to succeed
-    sleep 10
+    # Wait for the next reload cycle to succeed after SIGCONT
+    # The entrypoint should retry on the next cycle and apply the new config
+    max_wait=15
+    elapsed=0
+    retry_succeeded=false
+    while [ "${elapsed}" -lt "${max_wait}" ]; do
+        body="$(curl -s --resolve "new.local:18097:127.0.0.1" \
+            "http://new.local:18097/" 2>/dev/null)" || body=""
+        if printf '%s' "${body}" | grep -qF "NEW AFTER RETRY"; then
+            retry_succeeded=true
+            break
+        fi
+        sleep 1
+        elapsed=$((elapsed + 1))
+    done
+
+    if [ "${retry_succeeded}" = "true" ]; then
+        pass "Subsequent reload cycle succeeded after admin API recovered (${elapsed}s)"
+    else
+        fail "New site not live after admin API recovered (waited ${max_wait}s)"
+    fi
 
     cleanup_container "${cname}"
     rm -rf "${tmpdir}"
