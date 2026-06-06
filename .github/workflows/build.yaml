@@ -81,7 +81,7 @@ jobs:
         id: push
         uses: docker/build-push-action@v6
         with:
-          context: "containers/${{ inputs.container_name }}"
+          context: "."
           file: "containers/${{ inputs.container_name }}/Containerfile"
           tags: ${{ vars.REGISTRY_ORG }}/${{ inputs.container_name }}:${{ needs.prepare.outputs.version }}-${{ matrix.suffix }}
           labels: ${{ steps.metadata.outputs.labels }}
