@@ -1,13 +1,7 @@
 {
 	# Set ACME_EMAIL in production for Let's Encrypt account notifications.
 	email {$ACME_EMAIL:no-reply@localhost}
+	admin localhost:2019
 }
 
-# Production: set HTTPSVC_DOMAIN to your public hostname (e.g. example.com).
-# Caddy obtains a Let's Encrypt certificate automatically when DNS points here
-# and ports 80/443 are reachable from the internet.
-#
-# Local/container testing: set HTTPSVC_LISTEN=http:// (HTTPSVC_DOMAIN defaults to :80).
-{$HTTPSVC_LISTEN}{$HTTPSVC_DOMAIN::80} {
-	respond "Hello World!" 200
-}
+import /etc/caddy/sites/*.caddy

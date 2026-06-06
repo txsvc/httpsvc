@@ -81,12 +81,24 @@ test_ts01_3_caddyfile_validates() {
         return
     fi
 
-    # Create a temporary Caddyfile that imports from the local deploy/sites/ dir
+    # Create a temporary directory structure that mirrors the container layout.
+    # validate provisions resources (e.g. log writers), so all referenced
+    # paths must exist locally.
     tmpdir="$(mktemp -d)"
     trap 'rm -rf "${tmpdir}"' EXIT
 
-    # Replace the production import path with the local path for validation
-    sed "s|import /etc/caddy/sites/\\*\\.caddy|import ${REPO_ROOT}/deploy/sites/*.caddy|" \
+    mkdir -p "${tmpdir}/sites"
+
+    # Copy each snippet, rewriting /sites/<domain>/ paths to the temp dir
+    for f in "${REPO_ROOT}"/deploy/sites/*.caddy; do
+        domain="$(basename "$f" .caddy)"
+        mkdir -p "${tmpdir}/sitedata/${domain}/logs" "${tmpdir}/sitedata/${domain}/static"
+        sed "s|/sites/${domain}/|${tmpdir}/sitedata/${domain}/|g" \
+            "$f" > "${tmpdir}/sites/$(basename "$f")"
+    done
+
+    # Replace the production import path with the local temp path
+    sed "s|import /etc/caddy/sites/\\*\\.caddy|import ${tmpdir}/sites/*.caddy|" \
         "${CADDYFILE}" > "${tmpdir}/Caddyfile"
 
     httpsvc_bin="${REPO_ROOT}/bin/httpsvc"

@@ -1,0 +1,17 @@
+example.com {
+	root * /sites/example.com/static
+
+	log {
+		output file /sites/example.com/logs/access.log
+		format json
+	}
+
+	@static file
+	handle @static {
+		file_server
+	}
+
+	handle {
+		reverse_proxy localhost:8080
+	}
+}
