@@ -1,0 +1,28 @@
+FROM registry.access.redhat.com/ubi10/ubi-minimal
+
+ENV SERVICE_NAME=httpsvc
+ENV CADDYFILE=/etc/caddy/Caddyfile
+
+# See https://caddyserver.com/docs/conventions#file-locations
+ENV XDG_CONFIG_HOME=/config
+ENV XDG_DATA_HOME=/data
+
+EXPOSE 80
+EXPOSE 443
+EXPOSE 2019
+
+RUN set -eux; \
+	microdnf install -y ca-certificates shadow-utils; \
+	microdnf clean all; \
+	mkdir -p /config/caddy /data/caddy /etc/caddy
+
+COPY deploy/Caddyfile /etc/caddy/Caddyfile
+COPY deploy/run /usr/local/bin/run
+COPY bin/httpsvc-linux /usr/bin/httpsvc
+
+RUN chmod +x /usr/local/bin/run /usr/bin/httpsvc
+
+VOLUME /config
+VOLUME /data
+
+CMD ["/usr/local/bin/run"]

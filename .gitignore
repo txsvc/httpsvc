@@ -24,6 +24,13 @@ profile.cov
 go.work
 go.work.sum
 
+# Build output
+/bin/
+httpsvc
+httpsvc-linux
+svc
+main
+
 # env file
 .env
 
