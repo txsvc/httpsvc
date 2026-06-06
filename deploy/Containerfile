@@ -1,4 +1,24 @@
-FROM registry.access.redhat.com/ubi10/ubi-minimal
+ARG BUILDER=registry.redhat.io/ubi10/go-toolset:latest
+ARG RUNTIME=registry.access.redhat.com/ubi10/ubi-micro:latest
+
+# ---------- build ----------
+FROM ${BUILDER} AS build
+
+ARG VERSION=dev
+
+USER root
+WORKDIR /build
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN CGO_ENABLED=0 go build \
+    -ldflags "-s -w -X github.com/txsvc/httpsvc/internal/server.Version=${VERSION}" \
+    -o httpsvc ./cmd/httpsvc
+
+# ---------- runtime ----------
+FROM ${RUNTIME}
 
 ENV SERVICE_NAME=httpsvc
 ENV CADDYFILE=/etc/caddy/Caddyfile
@@ -11,14 +31,11 @@ EXPOSE 80
 EXPOSE 443
 EXPOSE 2019
 
-RUN set -eux; \
-	microdnf install -y ca-certificates shadow-utils; \
-	microdnf clean all; \
-	mkdir -p /config/caddy /data/caddy /etc/caddy
+RUN mkdir -p /config/caddy /data/caddy /etc/caddy
 
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
 COPY deploy/run /usr/local/bin/run
-COPY bin/httpsvc-linux /usr/bin/httpsvc
+COPY --from=build /build/httpsvc /usr/bin/httpsvc
 
 RUN chmod +x /usr/local/bin/run /usr/bin/httpsvc
 

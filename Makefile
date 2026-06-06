@@ -4,19 +4,14 @@ LDFLAGS := -s -w -X github.com/txsvc/httpsvc/internal/server.Version=$(VERSION)
 CONTAINERFILE := deploy/Containerfile
 IMAGE ?= httpsvc
 IMAGE_TAG ?= latest
-GOOS ?= linux
-GOARCH ?= amd64
+PLATFORMS ?= linux/amd64,linux/arm64
 
-.PHONY: all build build-linux test run clean tidy image run-container
+.PHONY: all build test run clean tidy image push run-container
 
 all: test
 
 build:
 	go build -ldflags "$(LDFLAGS)" -o bin/$(BINARY) $(CMD)
-
-build-linux:
-	CGO_ENABLED=0 GOOS=$(GOOS) GOARCH=$(GOARCH) \
-		go build -ldflags "$(LDFLAGS)" -o bin/$(BINARY)-linux $(CMD)
 
 test:
 	go test ./...
@@ -30,11 +25,17 @@ tidy:
 clean:
 	rm -rf bin/
 
-image: build-linux
-	podman build -f $(CONTAINERFILE) -t $(IMAGE):$(IMAGE_TAG) .
+image:
+	podman manifest rm $(IMAGE):$(IMAGE_TAG) 2>/dev/null || true
+	podman build --platform $(PLATFORMS) \
+		--build-arg VERSION=$(VERSION) \
+		--manifest $(IMAGE):$(IMAGE_TAG) \
+		-f $(CONTAINERFILE) .
+
+push:
+	podman manifest push $(IMAGE):$(IMAGE_TAG)
 
 run-container:
 	podman run --rm -p 8080:80 \
-		-v httpsvc-data:/data \
 		-e HTTPSVC_LISTEN=http:// \
 		$(IMAGE):$(IMAGE_TAG)
