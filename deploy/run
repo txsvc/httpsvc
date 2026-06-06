@@ -27,8 +27,7 @@ trap shutdown TERM INT
 
 # --- Snapshot of site configs for change detection ---
 sites_snapshot() {
-    find "${SITES_DIR}" -maxdepth 1 -name '*.caddy' \
-        -exec ls -l {} + 2>/dev/null || echo "EMPTY"
+    ls -l "${SITES_DIR}"/*.caddy 2>/dev/null || echo "EMPTY"
 }
 
 LAST_SNAPSHOT="$(sites_snapshot)"

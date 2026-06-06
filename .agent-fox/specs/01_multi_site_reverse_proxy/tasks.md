@@ -153,44 +153,44 @@ finally wiring verification (group 5).
     - [x] `make run-container` starts with correct volume mounts
     - [x] All unit tests pass: `make test-unit`
 
-- [ ] 5. Wiring verification
+- [x] 5. Wiring verification
 
-  - [ ] 5.1 Trace every execution path from design.md end-to-end
+  - [x] 5.1 Trace every execution path from design.md end-to-end
     - For each path (startup, hot-reload, static-then-proxy, graceful shutdown),
       verify the entry point actually calls the next function in the chain.
     - Confirm no function in the chain is a stub that was never replaced.
     - Every path must be live in production code.
     - _Requirements: all_
 
-  - [ ] 5.2 Verify return values propagate correctly
+  - [x] 5.2 Verify return values propagate correctly
     - For every function in this spec that returns data consumed by a caller,
       confirm the caller receives and uses the return value.
     - In particular: entrypoint's reload command exit code is checked and logged.
     - _Requirements: all_
 
-  - [ ] 5.3 Run the integration smoke tests
+  - [x] 5.3 Run the integration smoke tests
     - All `TS-01-SMOKE-*` tests pass using real components.
     - Build image, start container, test HTTP responses, hot-reload, shutdown.
     - _Test Spec: TS-01-SMOKE-1 through TS-01-SMOKE-4_
 
-  - [ ] 5.4 Stub / dead-code audit
+  - [x] 5.4 Stub / dead-code audit
     - Search all files touched by this spec for: `return`, `pass`, `# TODO`,
       `# stub`, `NotImplementedError`.
     - Each hit must be justified or replaced.
     - Remove the `respond "Hello World!" 200` placeholder from any config.
 
-  - [ ] 5.5 Cross-spec entry point verification
+  - [x] 5.5 Cross-spec entry point verification
     - This is the first spec — no cross-spec dependencies.
     - Verify that the entrypoint script is referenced by the Containerfile CMD.
     - Verify that the Caddyfile is referenced by the entrypoint script.
     - _Requirements: all_
 
-  - [ ] 5.V Verify wiring group
-    - [ ] All smoke tests pass
-    - [ ] No unjustified stubs remain in touched files
-    - [ ] All execution paths from design.md are live (traceable in code)
-    - [ ] All cross-spec entry points are called from production code
-    - [ ] All existing tests still pass: `make test-all`
+  - [x] 5.V Verify wiring group
+    - [x] All smoke tests pass
+    - [x] No unjustified stubs remain in touched files
+    - [x] All execution paths from design.md are live (traceable in code)
+    - [x] All cross-spec entry points are called from production code
+    - [x] All existing tests still pass: `make test-all`
 
 ## Traceability
 
