@@ -67,7 +67,7 @@ jobs:
         with:
           registry: ${{ vars.REGISTRY }}
           username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.GH_TOKEN }}
+          password: ${{ secrets.REGISTRY_TOKEN }}   # GitHub PAT
 
       - name: setup buildx
         uses: docker/setup-buildx-action@v3
@@ -100,7 +100,7 @@ jobs:
         with:
           registry: ${{ vars.REGISTRY }}
           username: ${{ secrets.REGISTRY_USERNAME }}
-          password: ${{ secrets.GH_TOKEN }}
+          password: ${{ secrets.REGISTRY_TOKEN }}
 
       - name: set image tags
         id: set-tags

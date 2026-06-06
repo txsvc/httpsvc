@@ -2,6 +2,12 @@ name: build httpsvc container
 on:
   workflow_dispatch:
 
+  pull_request:
+    branches:
+      - 'main'
+  push:
+    branches:
+      - 'main'
 jobs:
   build-runtime-container:
     uses: ./.github/workflows/build.yaml
