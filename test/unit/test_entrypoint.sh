@@ -1,8 +1,8 @@
 #!/bin/bash
-# test/unit/test_entrypoint.sh — Unit tests for the entrypoint script (deploy/run).
+# test/unit/test_entrypoint.sh — Unit tests for the entrypoint script (containers/httpsvc/run).
 # Tests: TS-01-9, TS-01-10
 #
-# These tests assert content of deploy/run to verify hot-reload logic.
+# These tests assert content of containers/httpsvc/run to verify hot-reload logic.
 # They are expected to FAIL until the entrypoint is rewritten.
 set -eu
 
@@ -12,7 +12,7 @@ TESTS_FAILED=0
 TESTS_PASSED=0
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-ENTRYPOINT="${REPO_ROOT}/deploy/run"
+ENTRYPOINT="${REPO_ROOT}/containers/httpsvc/run"
 
 pass() {
     TESTS_PASSED=$((TESTS_PASSED + 1))

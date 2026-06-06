@@ -1,7 +1,7 @@
 BINARY := httpsvc
 CMD := ./cmd/httpsvc
 LDFLAGS := -s -w -X github.com/txsvc/httpsvc/internal/server.Version=$(VERSION)
-CONTAINERFILE := deploy/Containerfile
+CONTAINERFILE := containers/httpsvc/Containerfile
 IMAGE ?= httpsvc
 IMAGE_TAG ?= latest
 PLATFORMS ?= linux/amd64,linux/arm64
@@ -17,7 +17,7 @@ test:
 	go test ./...
 
 run:
-	go run $(CMD) run --config deploy/Caddyfile --adapter caddyfile
+	go run $(CMD) run --config containers/httpsvc/Caddyfile --adapter caddyfile
 
 tidy:
 	go mod tidy
@@ -50,7 +50,7 @@ run-container:
 	podman run --rm -p 8080:80 \
 		-v caddy-data:/data \
 		-v caddy-sites:/sites \
-		-v ./deploy/sites:/etc/caddy/sites \
+		-v ./containers/httpsvc/sites:/etc/caddy/sites \
 		-e HTTPSVC_LISTEN=http:// \
 		-e ACME_EMAIL=$(ACME_EMAIL) \
 		-e RELOAD_INTERVAL=$(RELOAD_INTERVAL) \

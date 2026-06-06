@@ -2,8 +2,8 @@
 # test/unit/test_caddyfile.sh — Unit tests for Caddyfile and related config files.
 # Tests: TS-01-1 through TS-01-8
 #
-# These tests assert file content of deploy/Caddyfile, deploy/sites/example.com.caddy,
-# and deploy/Containerfile. They are expected to FAIL until the implementation is done.
+# These tests assert file content of containers/httpsvc/Caddyfile, containers/httpsvc/sites/example.com.caddy,
+# and containers/httpsvc/Containerfile. They are expected to FAIL until the implementation is done.
 set -eu
 
 # --- test harness ---
@@ -12,9 +12,9 @@ TESTS_FAILED=0
 TESTS_PASSED=0
 
 REPO_ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
-CADDYFILE="${REPO_ROOT}/deploy/Caddyfile"
-EXAMPLE_SNIPPET="${REPO_ROOT}/deploy/sites/example.com.caddy"
-CONTAINERFILE="${REPO_ROOT}/deploy/Containerfile"
+CADDYFILE="${REPO_ROOT}/containers/httpsvc/Caddyfile"
+EXAMPLE_SNIPPET="${REPO_ROOT}/containers/httpsvc/sites/example.com.caddy"
+CONTAINERFILE="${REPO_ROOT}/containers/httpsvc/Containerfile"
 
 pass() {
     TESTS_PASSED=$((TESTS_PASSED + 1))
@@ -90,7 +90,7 @@ test_ts01_3_caddyfile_validates() {
     mkdir -p "${tmpdir}/sites"
 
     # Copy each snippet, rewriting /sites/<domain>/ paths to the temp dir
-    for f in "${REPO_ROOT}"/deploy/sites/*.caddy; do
+    for f in "${REPO_ROOT}"/containers/httpsvc/sites/*.caddy; do
         domain="$(basename "$f" .caddy)"
         mkdir -p "${tmpdir}/sitedata/${domain}/logs" "${tmpdir}/sitedata/${domain}/static"
         sed "s|/sites/${domain}/|${tmpdir}/sitedata/${domain}/|g" \

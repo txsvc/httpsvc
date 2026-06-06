@@ -32,9 +32,9 @@ EXPOSE 443
 
 RUN mkdir -p /config/caddy /data/caddy /etc/caddy/sites /sites
 
-COPY deploy/Caddyfile /etc/caddy/Caddyfile
-COPY deploy/sites/ /etc/caddy/sites/
-COPY deploy/run /usr/local/bin/run
+COPY containers/httpsvc/Caddyfile /etc/caddy/Caddyfile
+COPY containers/httpsvc/sites/ /etc/caddy/sites/
+COPY containers/httpsvc/run /usr/local/bin/run
 COPY --from=build /build/httpsvc /usr/bin/httpsvc
 
 RUN chmod +x /usr/local/bin/run /usr/bin/httpsvc
