@@ -29,11 +29,11 @@ ENV XDG_DATA_HOME=/data
 
 EXPOSE 80
 EXPOSE 443
-EXPOSE 2019
 
-RUN mkdir -p /config/caddy /data/caddy /etc/caddy
+RUN mkdir -p /config/caddy /data/caddy /etc/caddy/sites /sites
 
 COPY deploy/Caddyfile /etc/caddy/Caddyfile
+COPY deploy/sites/ /etc/caddy/sites/
 COPY deploy/run /usr/local/bin/run
 COPY --from=build /build/httpsvc /usr/bin/httpsvc
 
@@ -41,5 +41,6 @@ RUN chmod +x /usr/local/bin/run /usr/bin/httpsvc
 
 VOLUME /config
 VOLUME /data
+VOLUME /sites
 
 CMD ["/usr/local/bin/run"]

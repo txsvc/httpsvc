@@ -48,5 +48,10 @@ test-all: test-unit test-integration
 
 run-container:
 	podman run --rm -p 8080:80 \
+		-v caddy-data:/data \
+		-v caddy-sites:/sites \
+		-v ./deploy/sites:/etc/caddy/sites \
 		-e HTTPSVC_LISTEN=http:// \
+		-e ACME_EMAIL=$(ACME_EMAIL) \
+		-e RELOAD_INTERVAL=$(RELOAD_INTERVAL) \
 		$(IMAGE):$(IMAGE_TAG)

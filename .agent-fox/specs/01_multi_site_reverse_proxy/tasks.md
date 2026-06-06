@@ -126,8 +126,8 @@ finally wiring verification (group 5).
     - [x] `shellcheck deploy/run` passes with no warnings
     - [x] Requirements 5.1, 5.2, 5.3, 5.E1, 5.E2 acceptance criteria met
 
-- [ ] 4. Container and Makefile updates
-  - [ ] 4.1 Update deploy/Containerfile
+- [x] 4. Container and Makefile updates
+  - [x] 4.1 Update deploy/Containerfile
     - Remove `EXPOSE 2019` (admin API is localhost-only).
     - Add `VOLUME /sites` for per-site data.
     - Create `/etc/caddy/sites/` directory in the image.
@@ -135,23 +135,23 @@ finally wiring verification (group 5).
     - Ensure `/sites` base directory is created.
     - _Requirements: 3.3, 6.2_
 
-  - [ ] 4.2 Update Makefile run-container target
+  - [x] 4.2 Update Makefile run-container target
     - Add volume mounts: `-v caddy-data:/data`, `-v caddy-sites:/sites`.
     - Add bind mount for site configs: `-v ./deploy/sites:/etc/caddy/sites`.
     - Pass `ACME_EMAIL` and `RELOAD_INTERVAL` env vars.
     - _Requirements: 2.3_
 
-  - [ ] 4.3 Update Makefile with test targets
+  - [x] 4.3 Update Makefile with test targets
     - Ensure `test-unit`, `test-integration`, `test-all` targets are present
       and functional.
     - _Requirements: all_
 
-  - [ ] 4.V Verify task group 4
-    - [ ] TS-01-7 (no EXPOSE 2019) passes
-    - [ ] TS-01-8 (VOLUME /sites) passes
-    - [ ] `make image` builds successfully
-    - [ ] `make run-container` starts with correct volume mounts
-    - [ ] All unit tests pass: `make test-unit`
+  - [x] 4.V Verify task group 4
+    - [x] TS-01-7 (no EXPOSE 2019) passes
+    - [x] TS-01-8 (VOLUME /sites) passes
+    - [x] `make image` builds successfully
+    - [x] `make run-container` starts with correct volume mounts
+    - [x] All unit tests pass: `make test-unit`
 
 - [ ] 5. Wiring verification
 
