@@ -1,0 +1,15 @@
+name: build httpsvc container
+on:
+  workflow_dispatch:
+
+jobs:
+  build-runtime-container:
+    uses: ./.github/workflows/build.yaml
+    with:
+      container_name: httpsvc
+    secrets: inherit
+    permissions:
+      packages: write
+      contents: read
+      id-token: write
+      attestations: write

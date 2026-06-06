@@ -1,0 +1,7 @@
+{
+	# Set ACME_EMAIL in production for Let's Encrypt account notifications.
+	email {$ACME_EMAIL:no-reply@localhost}
+	admin localhost:2019
+}
+
+import /etc/caddy/sites/*.caddy
