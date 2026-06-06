@@ -1,4 +1,54 @@
 #!/bin/sh
 set -eu
 
-exec /usr/bin/httpsvc run --config "${CADDYFILE}" --adapter caddyfile
+CADDYFILE="${CADDYFILE:-/etc/caddy/Caddyfile}"
+SITES_DIR="/etc/caddy/sites"
+
+# --- Validate RELOAD_INTERVAL (default: 30) ---
+RELOAD_INTERVAL="${RELOAD_INTERVAL:-30}"
+case "${RELOAD_INTERVAL}" in
+    ''|*[!0-9]*)
+        printf "WARNING: invalid RELOAD_INTERVAL '%s', falling back to 30\n" "${RELOAD_INTERVAL}"
+        RELOAD_INTERVAL=30
+        ;;
+esac
+
+# --- Start Caddy in the background ---
+/usr/bin/httpsvc run --config "${CADDYFILE}" --adapter caddyfile &
+CADDY_PID=$!
+
+# --- Graceful shutdown handler ---
+shutdown() {
+    kill -TERM "${CADDY_PID}" 2>/dev/null || true
+    wait "${CADDY_PID}" 2>/dev/null || true
+    exit 0
+}
+trap shutdown TERM INT
+
+# --- Snapshot of site configs for change detection ---
+sites_snapshot() {
+    find "${SITES_DIR}" -maxdepth 1 -name '*.caddy' \
+        -exec ls -l {} + 2>/dev/null || echo "EMPTY"
+}
+
+LAST_SNAPSHOT="$(sites_snapshot)"
+
+# --- Polling loop ---
+while kill -0 "${CADDY_PID}" 2>/dev/null; do
+    sleep "${RELOAD_INTERVAL}" &
+    wait "$!" 2>/dev/null || true
+
+    CURRENT_SNAPSHOT="$(sites_snapshot)"
+    if [ "${CURRENT_SNAPSHOT}" != "${LAST_SNAPSHOT}" ]; then
+        printf "Reload: config change detected in %s\n" "${SITES_DIR}"
+        if /usr/bin/httpsvc reload --config "${CADDYFILE}" --adapter caddyfile; then
+            printf "Reload: successfully applied new configuration\n"
+            LAST_SNAPSHOT="${CURRENT_SNAPSHOT}"
+        else
+            printf "Reload: error — failed to apply configuration, keeping previous config\n"
+        fi
+    fi
+done
+
+# Caddy exited on its own — propagate exit code
+wait "${CADDY_PID}" 2>/dev/null

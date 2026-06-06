@@ -99,15 +99,15 @@ finally wiring verification (group 5).
     - [x] `shellcheck deploy/run` still passes
     - [x] Config validates: `bin/httpsvc validate --config deploy/Caddyfile --adapter caddyfile`
 
-- [ ] 3. Entrypoint script with hot-reload
-  - [ ] 3.1 Rewrite deploy/run
+- [x] 3. Entrypoint script with hot-reload
+  - [x] 3.1 Rewrite deploy/run
     - Start Caddy as background process (not `exec`), capture PID.
     - Set up `trap` for SIGTERM/SIGINT to forward to Caddy PID.
     - Read `RELOAD_INTERVAL` env var, default to 30, validate numeric.
     - Log warning and fall back to 30 if value is invalid.
     - _Requirements: 5.3, 5.E2_
 
-  - [ ] 3.2 Implement config change detection loop
+  - [x] 3.2 Implement config change detection loop
     - Record initial state of `/etc/caddy/sites/` directory.
     - Poll every `RELOAD_INTERVAL` seconds using `find` mtime or checksum.
     - On change: run `httpsvc reload --config $CADDYFILE --adapter caddyfile`.
@@ -115,16 +115,16 @@ finally wiring verification (group 5).
     - On reload failure: log error, continue loop.
     - _Requirements: 5.1, 5.2, 5.E1, 6.E1_
 
-  - [ ] 3.3 Implement graceful shutdown
+  - [x] 3.3 Implement graceful shutdown
     - On SIGTERM/SIGINT: forward signal to Caddy PID, wait for exit.
     - Exit with Caddy's exit code.
     - _Requirements: 5.4 (graceful reload preserves connections)_
 
-  - [ ] 3.V Verify task group 3
-    - [ ] TS-01-9 (RELOAD_INTERVAL default) passes
-    - [ ] TS-01-10 (reload logging) passes
-    - [ ] `shellcheck deploy/run` passes with no warnings
-    - [ ] Requirements 5.1, 5.2, 5.3, 5.E1, 5.E2 acceptance criteria met
+  - [x] 3.V Verify task group 3
+    - [x] TS-01-9 (RELOAD_INTERVAL default) passes
+    - [x] TS-01-10 (reload logging) passes
+    - [x] `shellcheck deploy/run` passes with no warnings
+    - [x] Requirements 5.1, 5.2, 5.3, 5.E1, 5.E2 acceptance criteria met
 
 - [ ] 4. Container and Makefile updates
   - [ ] 4.1 Update deploy/Containerfile
