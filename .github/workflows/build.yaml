@@ -8,6 +8,9 @@ on:
         required: true
         type: string
 
+env:
+  IMAGE_NAME: ${{ vars.REGISTRY }}/${{ vars.REGISTRY_ORG }}/${{ inputs.container_name }}
+
 jobs:
   prepare:
     runs-on: ubuntu-latest
@@ -62,7 +65,7 @@ jobs:
           username: ${{ secrets.RH_ACCOUNT_USERNAME }}
           password: ${{ secrets.RH_ACCOUNT_PASSWORD }}
 
-      - name: login to GH registry
+      - name: login to Quay.io registry
         uses: docker/login-action@v3
         with:
           registry: ${{ vars.REGISTRY }}
@@ -75,7 +78,7 @@ jobs:
       - id: metadata
         uses: docker/metadata-action@v5
         with:
-          images: ${{ vars.REGISTRY_ORG }}/${{ inputs.container_name }}
+          images: ${{ env.IMAGE_NAME }}
 
       - name: build and push
         id: push
@@ -83,11 +86,11 @@ jobs:
         with:
           context: "."
           file: "containers/${{ inputs.container_name }}/Containerfile"
-          tags: ${{ vars.REGISTRY_ORG }}/${{ inputs.container_name }}:${{ needs.prepare.outputs.version }}-${{ matrix.suffix }}
+          tags: ${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-${{ matrix.suffix }}
           labels: ${{ steps.metadata.outputs.labels }}
           platforms: ${{ matrix.platform }}
-          cache-from: type=registry,ref=${{ vars.REGISTRY_ORG }}/${{ inputs.container_name }}:cache-${{ matrix.suffix }}
-          cache-to: type=registry,ref=${{ vars.REGISTRY_ORG }}/${{ inputs.container_name }}:cache-${{ matrix.suffix }},mode=max
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:cache-${{ matrix.suffix }}
+          cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:cache-${{ matrix.suffix }},mode=max
           push: true
 
   manifest:
@@ -95,7 +98,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: login to GH registry
+      - name: login to Quay.io registry
         uses: docker/login-action@v3
         with:
           registry: ${{ vars.REGISTRY }}
@@ -105,15 +108,15 @@ jobs:
       - name: set image tags
         id: set-tags
         run: |
-          TAGS="${{ vars.REGISTRY_ORG }}/${{ inputs.container_name }}:${{ needs.prepare.outputs.version }}"
+          TAGS="${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}"
 
           if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            TAGS="$TAGS,${{ vars.REGISTRY_ORG }}/${{ inputs.container_name }}:latest"
+            TAGS="$TAGS,${{ env.IMAGE_NAME }}:latest"
           fi
 
           if [[ "${{ github.ref }}" == refs/heads/release-* ]]; then
             RELEASE_BRANCH_NAME=$(basename "${{ github.ref }}")
-            TAGS="$TAGS,${{ vars.REGISTRY_ORG }}/${{ inputs.container_name }}:${RELEASE_BRANCH_NAME}"
+            TAGS="$TAGS,${{ env.IMAGE_NAME }}:${RELEASE_BRANCH_NAME}"
           fi
 
           echo "tags=$TAGS" >> $GITHUB_OUTPUT
@@ -124,16 +127,16 @@ jobs:
           IFS=',' read -ra TAG_ARRAY <<< "${{ steps.set-tags.outputs.tags }}"
           for TAG in "${TAG_ARRAY[@]}"; do
             docker buildx imagetools create -t "${TAG}" \
-              ${{ vars.REGISTRY_ORG }}/${{ inputs.container_name }}:${{ needs.prepare.outputs.version }}-amd64 \
-              ${{ vars.REGISTRY_ORG }}/${{ inputs.container_name }}:${{ needs.prepare.outputs.version }}-arm64
+              ${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-amd64 \
+              ${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }}-arm64
           done
           # get digest from the version tag
-          DIGEST=$(docker buildx imagetools inspect ${{ vars.REGISTRY_ORG }}/${{ inputs.container_name }}:${{ needs.prepare.outputs.version }} --format '{{json .Manifest}}' | jq -r '.digest')
+          DIGEST=$(docker buildx imagetools inspect ${{ env.IMAGE_NAME }}:${{ needs.prepare.outputs.version }} --format '{{json .Manifest}}' | jq -r '.digest')
           echo "digest=${DIGEST}" >> $GITHUB_OUTPUT
 
       - name: generate artifact attestation
         uses: actions/attest-build-provenance@v1
         with:
-          subject-name: ${{ vars.REGISTRY_ORG }}/${{ inputs.container_name }}
+          subject-name: ${{ env.IMAGE_NAME }}
           subject-digest: ${{ steps.manifest.outputs.digest }}
           push-to-registry: true
